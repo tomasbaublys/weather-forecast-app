@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import Container from '../UI/atoms/Container';
 import Heading from '../UI/atoms/Heading';
+import CitySelect from '../UI/molecules/CitySelect';
 import WeatherContext from '../contexts/WeatherContext';
 
 const WeatherPage = () => {
@@ -26,19 +27,11 @@ const WeatherPage = () => {
     <Container>
       <Heading>Weather Forecast</Heading>
 
-      <select
-        onChange={(e) => {
-          const code = e.target.value;
-          if (code) setSelectedPlaceCode(code);
-        }}
-      >
-        <option value="">Select city</option>
-        {places.slice(0, 20).map((p) => (
-          <option key={p.code} value={p.code}>
-            {p.name}
-          </option>
-        ))}
-      </select>
+      <CitySelect
+        places={places}
+        selectedPlaceCode={selectedPlaceCode}
+        onSelectPlaceCode={setSelectedPlaceCode}
+      />
 
       <div>Loaded places: {places.length}</div>
       <div>Selected: {selectedPlaceCode ?? '-'}</div>
