@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.meteo.lt/v1';
+const BASE_URL = 'http://localhost:5500/api';
 
 export type Place = {
   code: string;
@@ -8,10 +8,7 @@ export type Place = {
 export type ForecastTimestamp = {
   forecastTimeUtc: string;
   airTemperature: number | null;
-  feelsLikeTemperature?: number | null;
   windSpeed: number | null;
-  windGust?: number | null;
-  windDirection?: number | null;
   relativeHumidity: number | null;
   seaLevelPressure: number | null;
   totalPrecipitation: number | null;
@@ -26,8 +23,12 @@ export type LongTermForecastResponse = {
 
 const fetchJson = async <T>(url: string): Promise<T> => {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Request failed: ${res.status} ${res.statusText}`);
-  return (await res.json()) as T;
+
+  if (!res.ok) {
+    throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json() as Promise<T>;
 };
 
 export const weatherApi = {
