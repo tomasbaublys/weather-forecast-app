@@ -2,6 +2,12 @@ import { createContext, useEffect, useState } from 'react';
 import weatherApi, { type LongTermForecastResponse, type Place } from '../../api/weatherApi';
 import type { ChildrenProps, WeatherContextTypes } from '../../types';
 
+type TopCity = {
+  code: string;
+  name: string;
+  count: number;
+};
+
 const WeatherContext = createContext<WeatherContextTypes | undefined>(undefined);
 
 const WeatherProvider = ({ children }: ChildrenProps) => {
@@ -55,23 +61,48 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
   }, [selectedPlaceCode]);
 
   const setSelectedPlaceCode = async (placeCode: string) => {
-  setSelectedPlaceCodeState(placeCode);
+    setSelectedPlaceCodeState(placeCode);
 
-  const place = places.find((p) => p.code === placeCode);
+    const place = places.find((p) => p.code === placeCode);
 
-  try {
-    await fetch('http://localhost:5500/api/log/city-selected', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        placeCode,
-        placeName: place?.name ?? null,
-      }),
-    });
-  } catch {
-    // ignore logging errors
-  }
-};
+    // store top-3 most viewed cities in browser (localStorage)
+    if (place) {
+      const STORAGE_KEY = 'weather.topCities';
+
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const list: TopCity[] = raw ? (JSON.parse(raw) as TopCity[]) : [];
+
+      const existing = list.find((c) => c.code === place.code);
+
+      if (existing) {
+        existing.count += 1;
+      } else {
+        list.push({
+          code: place.code,
+          name: place.name,
+          count: 1,
+        });
+      }
+
+      list.sort((a, b) => b.count - a.count);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 3)));
+    }
+
+    // backend logging (task requirement)
+    try {
+      await fetch('http://localhost:5500/api/log/city-selected', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          placeCode,
+          placeName: place?.name ?? null,
+        }),
+      });
+    } catch {
+      // ignore logging errors
+    }
+  };
 
   return (
     <WeatherContext.Provider
