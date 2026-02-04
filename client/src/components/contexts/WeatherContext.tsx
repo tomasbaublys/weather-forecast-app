@@ -15,9 +15,17 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
   const [selectedPlaceCode, setSelectedPlaceCodeState] = useState<string | null>(null);
   const [forecast, setForecast] = useState<LongTermForecastResponse | null>(null);
 
+  const [topCities, setTopCities] = useState<TopCity[]>([]);
+
   const [loadingPlaces, setLoadingPlaces] = useState(true);
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // load top cities from localStorage on start
+  useEffect(() => {
+    const raw = localStorage.getItem('weather.topCities');
+    setTopCities(raw ? (JSON.parse(raw) as TopCity[]) : []);
+  }, []);
 
   useEffect(() => {
     const loadPlaces = async () => {
@@ -65,7 +73,7 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
 
     const place = places.find((p) => p.code === placeCode);
 
-    // store top-3 most viewed cities in browser (localStorage)
+    // store top-3 most viewed cities in browser (localStorage) + update state
     if (place) {
       const STORAGE_KEY = 'weather.topCities';
 
@@ -86,7 +94,10 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
 
       list.sort((a, b) => b.count - a.count);
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 3)));
+      const updated = list.slice(0, 3);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      setTopCities(updated);
     }
 
     // backend logging (task requirement)
@@ -113,6 +124,7 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
         loadingPlaces,
         loadingForecast,
         error,
+        topCities,
         setSelectedPlaceCode,
       }}
     >

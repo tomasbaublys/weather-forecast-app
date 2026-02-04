@@ -14,5 +14,7 @@ export type WeatherContextTypes = {
   loadingForecast: boolean;
   error: string | null;
 
+  topCities: { code: string; name: string; count: number }[];
+
   setSelectedPlaceCode: (placeCode: string) => void;
 };
