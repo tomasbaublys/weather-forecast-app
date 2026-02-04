@@ -16,7 +16,19 @@ const WeatherPage = () => {
   return (
     <Container>
       <Heading>Weather Forecast</Heading>
-
+      <select
+  onChange={(e) => {
+    const code = e.target.value;
+    if (code) ctx.setSelectedPlaceCode(code);
+  }}
+>
+  <option value="">Select city</option>
+  {places.slice(0, 20).map((p) => (
+    <option key={p.code} value={p.code}>
+      {p.name}
+    </option>
+  ))}
+</select>
       <div>Loaded places: {places.length}</div>
       <div>Selected: {selectedPlaceCode ?? '-'}</div>
 

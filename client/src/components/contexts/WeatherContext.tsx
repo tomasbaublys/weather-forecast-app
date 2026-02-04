@@ -54,9 +54,24 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
     void loadForecast();
   }, [selectedPlaceCode]);
 
-  const setSelectedPlaceCode = (placeCode: string) => {
-    setSelectedPlaceCodeState(placeCode);
-  };
+  const setSelectedPlaceCode = async (placeCode: string) => {
+  setSelectedPlaceCodeState(placeCode);
+
+  const place = places.find((p) => p.code === placeCode);
+
+  try {
+    await fetch('http://localhost:5500/api/log/city-selected', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        placeCode,
+        placeName: place?.name ?? null,
+      }),
+    });
+  } catch {
+    // ignore logging errors
+  }
+};
 
   return (
     <WeatherContext.Provider
