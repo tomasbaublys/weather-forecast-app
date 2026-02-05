@@ -10,19 +10,21 @@ type CitySelectProps = {
 
 const Wrapper = styled.div`
   margin: 12px 0;
+  max-width: 520px;
 `;
 
 const SearchInput = styled.input`
   padding: 10px 12px;
-  min-width: 280px;
+  width: 100%;
 `;
 
 const List = styled.ul`
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   padding: 0;
   list-style: none;
-  max-width: 420px;
   border: 1px solid #ccc;
+  max-height: 280px;
+  overflow: auto;
 `;
 
 const Item = styled.li`
@@ -36,6 +38,7 @@ const Item = styled.li`
 
 const CitySelect = ({ places, selectedPlaceCode, onSelectPlaceCode }: CitySelectProps) => {
   const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -52,20 +55,32 @@ const CitySelect = ({ places, selectedPlaceCode, onSelectPlaceCode }: CitySelect
     <Wrapper>
       <SearchInput
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setIsOpen(true);
+        }}
+        onFocus={() => {
+          if (query.trim()) setIsOpen(true);
+        }}
+        onBlur={() => {
+          // allow click to register before closing
+          setTimeout(() => setIsOpen(false), 120);
+        }}
         placeholder="Search city..."
       />
 
       {selectedName && <div>Selected: {selectedName}</div>}
 
-      {filtered.length > 0 && (
+      {isOpen && filtered.length > 0 && (
         <List>
           {filtered.map((p) => (
             <Item
               key={p.code}
-              onClick={() => {
-                onSelectPlaceCode(p.code);
-                setQuery(p.name); // keep it simple: show selected in input
+              onMouseDown={() => {
+                // onMouseDown fires before blur closes the list
+                onSelectPlaceCode(p.code); // this triggers counting in context
+                setQuery(p.name); // show chosen label
+                setIsOpen(false); // close suggestions
               }}
             >
               {p.name}
