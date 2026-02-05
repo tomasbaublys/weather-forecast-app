@@ -5,6 +5,12 @@ export type ChildrenProps = {
   children: ReactNode;
 };
 
+export type TopCity = {
+  code: string;
+  name: string;
+  count: number;
+};
+
 export type DailyForecast = {
   date: string;
   minTemp: number;
@@ -31,7 +37,7 @@ export type WeatherContextTypes = {
   loadingForecast: boolean;
   error: string | null;
 
-  topCities: { code: string; name: string; count: number }[];
+  topCities: TopCity[];
 
   setSelectedPlaceCode: (placeCode: string) => void;
 };

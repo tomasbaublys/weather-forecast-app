@@ -1,12 +1,7 @@
 import { createContext, useEffect, useState } from 'react';
 import weatherApi, { type LongTermForecastResponse, type Place } from '../../api/weatherApi';
-import type { ChildrenProps, WeatherContextTypes } from '../../types';
-
-type TopCity = {
-  code: string;
-  name: string;
-  count: number;
-};
+import type { ChildrenProps, TopCity, WeatherContextTypes } from '../../types';
+import { loadTopCities, recordCityView } from '../../storage/topCitiesStorage';
 
 const WeatherContext = createContext<WeatherContextTypes | undefined>(undefined);
 
@@ -21,10 +16,8 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // load top cities from localStorage on start
   useEffect(() => {
-    const raw = localStorage.getItem('weather.topCities');
-    setTopCities(raw ? (JSON.parse(raw) as TopCity[]) : []);
+    setTopCities(loadTopCities());
   }, []);
 
   useEffect(() => {
@@ -73,34 +66,11 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
 
     const place = places.find((p) => p.code === placeCode);
 
-    // store top-3 most viewed cities in browser (localStorage) + update state
     if (place) {
-      const STORAGE_KEY = 'weather.topCities';
-
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const list: TopCity[] = raw ? (JSON.parse(raw) as TopCity[]) : [];
-
-      const existing = list.find((c) => c.code === place.code);
-
-      if (existing) {
-        existing.count += 1;
-      } else {
-        list.push({
-          code: place.code,
-          name: place.name,
-          count: 1,
-        });
-      }
-
-      list.sort((a, b) => b.count - a.count);
-
-      const updated = list.slice(0, 3);
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      const updated = recordCityView({ code: place.code, name: place.name });
       setTopCities(updated);
     }
 
-    // backend logging (task requirement)
     try {
       await fetch('http://localhost:5500/api/log/city-selected', {
         method: 'POST',
