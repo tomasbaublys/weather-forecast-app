@@ -5,6 +5,23 @@ export type ChildrenProps = {
   children: ReactNode;
 };
 
+export type DailyForecast = {
+  date: string;
+  minTemp: number;
+  maxTemp: number;
+  windMax: number;
+  humAvg: number;
+};
+
+export type DayStats = {
+  date: string;
+  min: number;
+  max: number;
+  windMax: number;
+  humSum: number;
+  count: number;
+};
+
 export type WeatherContextTypes = {
   places: Place[];
   selectedPlaceCode: string | null;
