@@ -63,7 +63,6 @@ const CitySelect = ({ places, selectedPlaceCode, onSelectPlaceCode }: CitySelect
           if (query.trim()) setIsOpen(true);
         }}
         onBlur={() => {
-          // allow click to register before closing
           setTimeout(() => setIsOpen(false), 120);
         }}
         placeholder="Search city..."
@@ -77,10 +76,9 @@ const CitySelect = ({ places, selectedPlaceCode, onSelectPlaceCode }: CitySelect
             <Item
               key={p.code}
               onMouseDown={() => {
-                // onMouseDown fires before blur closes the list
-                onSelectPlaceCode(p.code); // this triggers counting in context
-                setQuery(p.name); // show chosen label
-                setIsOpen(false); // close suggestions
+                onSelectPlaceCode(p.code);
+                setQuery(p.name);
+                setIsOpen(false);
               }}
             >
               {p.name}

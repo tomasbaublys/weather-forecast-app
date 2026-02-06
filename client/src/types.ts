@@ -1,8 +1,15 @@
 import type { ReactNode } from 'react';
-import type { LongTermForecastResponse, Place } from './api/weatherApi';
+import type { LongTermForecastResponse, Place, ForecastTimestamp } from './api/weatherApi';
 
 export type ChildrenProps = {
   children: ReactNode;
+};
+
+export type WeatherIconName = 'cloud' | 'sun' | 'rain' | 'snow' | 'wind';
+
+export type WeatherIconProps = {
+  name: WeatherIconName;
+  className?: string;
 };
 
 export type TopCity = {
@@ -40,4 +47,26 @@ export type WeatherContextTypes = {
   topCities: TopCity[];
 
   setSelectedPlaceCode: (placeCode: string) => void;
+};
+
+export type WeatherDailyCardListProps = {
+  loadingForecast: boolean;
+  dailyForecast: DailyForecast[];
+  dailyIconsByDate: Map<string, WeatherIconName>;
+};
+
+export type WeatherCurrentCardProps = {
+  selectedPlaceName: string;
+  loadingForecast: boolean;
+  currentWeather: ForecastTimestamp | null;
+  currentIcon: WeatherIconName;
+  currentTempText: string;
+};
+
+export type WeatherTopCitiesProps = {
+  topCities: TopCity[];
+  onSelectPlaceCode: (placeCode: string) => void;
+  hasCurrentWeather: boolean;
+  currentIcon: WeatherIconName;
+  currentTempText: string;
 };

@@ -4,10 +4,17 @@ import Heading from '../UI/atoms/Heading';
 import CitySelect from '../UI/molecules/CitySelect';
 import WeatherContext from '../contexts/WeatherContext';
 import { getCurrentWeather, getDailyForecast } from '../../utils/weatherForecast';
+import { buildDailyIconsByDate, conditionToIcon, formatTempC, getSelectedPlaceName } from '../../utils/weatherUi';
+import type { WeatherIconName } from '../../types';
+
+import WeatherTopCities from '../UI/organisms/WeatherTopCities';
+import WeatherCurrentCard from '../UI/organisms/WeatherCurrentCard';
+import WeatherDailyCardList from '../UI/organisms/WeatherDailyCardList';
+
+import '../../styles/weatherPage.scss';
 
 const WeatherPage = () => {
   const ctx = useContext(WeatherContext);
-
   const forecast = ctx?.forecast ?? null;
 
   const currentWeather = useMemo(() => {
@@ -20,69 +27,73 @@ const WeatherPage = () => {
     return getDailyForecast(forecast.forecastTimestamps);
   }, [forecast]);
 
+  const dailyIconsByDate = useMemo(() => {
+    if (!forecast) return new Map<string, WeatherIconName>();
+
+    return buildDailyIconsByDate(
+      forecast.forecastTimestamps,
+      dailyForecast.map((d) => d.date)
+    );
+  }, [forecast, dailyForecast]);
+
   if (!ctx) return <div>WeatherContext missing</div>;
 
-  const {
-    places,
-    selectedPlaceCode,
-    loadingPlaces,
-    loadingForecast,
-    error,
-    topCities,
-    setSelectedPlaceCode,
-  } = ctx;
+  const { places, loadingPlaces, loadingForecast, error, topCities, setSelectedPlaceCode, selectedPlaceCode } = ctx;
 
   if (loadingPlaces) return <div>Loading places...</div>;
   if (error) return <div>Error: {error}</div>;
 
+  const selectedPlaceName = getSelectedPlaceName(places, selectedPlaceCode);
+
+  const currentIcon = conditionToIcon(currentWeather?.conditionCode);
+  const currentTempText = formatTempC(currentWeather?.airTemperature);
+
   return (
-    <Container>
-      <Heading>Weather Forecast</Heading>
+    <div className="weatherPage">
+      <div className="weatherPage__hero" />
 
-      <CitySelect
-        places={places}
-        selectedPlaceCode={selectedPlaceCode}
-        onSelectPlaceCode={setSelectedPlaceCode}
-      />
+      <Container>
+        <div className="weatherPage__content">
+          <header className="weatherPage__header">
+            <Heading>Weather Forecast</Heading>
 
-      <h3>Top viewed cities</h3>
-      <ul>
-        {topCities.map((city) => (
-          <li key={city.code}>
-            <button type="button" onClick={() => setSelectedPlaceCode(city.code)}>
-              {city.name} ({city.count})
-            </button>
-          </li>
-        ))}
-      </ul>
+            <div className="weatherPage__searchWrap">
+              <CitySelect
+                places={places}
+                selectedPlaceCode={selectedPlaceCode}
+                onSelectPlaceCode={setSelectedPlaceCode}
+              />
+            </div>
+          </header>
 
-      {loadingForecast && <div>Loading forecast...</div>}
+          <WeatherTopCities
+            topCities={topCities}
+            onSelectPlaceCode={setSelectedPlaceCode}
+            hasCurrentWeather={Boolean(currentWeather)}
+            currentIcon={currentIcon}
+            currentTempText={currentTempText}
+          />
 
-      {!loadingForecast && forecast && currentWeather && (
-        <>
-          <h3>Current conditions (UTC)</h3>
-          <ul>
-            <li>Time: {currentWeather.forecastTimeUtc}</li>
-            <li>Temperature: {currentWeather.airTemperature ?? '-'} °C</li>
-            <li>Wind: {currentWeather.windSpeed ?? '-'} m/s</li>
-            <li>Humidity: {currentWeather.relativeHumidity ?? '-'} %</li>
-            <li>Pressure: {currentWeather.seaLevelPressure ?? '-'} hPa</li>
-            <li>Precipitation: {currentWeather.totalPrecipitation ?? '-'} mm</li>
-            <li>Condition: {currentWeather.conditionCode ?? '-'}</li>
-          </ul>
+          <section className="weatherPage__main">
+            <div className="weatherPage__grid">
+              <WeatherCurrentCard
+                selectedPlaceName={selectedPlaceName}
+                loadingForecast={loadingForecast}
+                currentWeather={currentWeather}
+                currentIcon={currentIcon}
+                currentTempText={currentTempText}
+              />
 
-          <h3>5 day forecast</h3>
-          <ul>
-            {dailyForecast.map((day) => (
-              <li key={day.date}>
-                {day.date} | min: {day.minTemp}°C | max: {day.maxTemp}°C | wind max: {day.windMax} | hum avg:{' '}
-                {day.humAvg}%
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </Container>
+              <WeatherDailyCardList
+                loadingForecast={loadingForecast}
+                dailyForecast={dailyForecast}
+                dailyIconsByDate={dailyIconsByDate}
+              />
+            </div>
+          </section>
+        </div>
+      </Container>
+    </div>
   );
 };
 
