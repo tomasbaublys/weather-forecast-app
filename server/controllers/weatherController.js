@@ -1,4 +1,5 @@
 import { METEO_BASE_URL, fetchJson } from '../helper.js';
+import db from '../db/sqlite.js';
 
 export const getPlaces = async (req, res) => {
   try {
@@ -24,10 +25,28 @@ export const getLongTermForecast = async (req, res) => {
 };
 
 export const logCitySelected = async (req, res) => {
-  const { placeCode, placeName } = req.body || {};
-  const when = new Date().toISOString();
+  const { placeCode, placeName } = req.body ?? {};
 
-  console.log(`[CITY_SELECTED] ${when} | ${placeName ?? '-'} (${placeCode ?? '-'})`);
+  if (!placeCode || typeof placeCode !== 'string') {
+    return res.status(400).json({ error: 'placeCode is required' });
+  }
+
+  const ip =
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.socket?.remoteAddress ||
+    null;
+
+  const userAgent = req.headers['user-agent'] ?? null;
+
+  const stmt = db.prepare(`
+    INSERT INTO city_selections
+    (place_code, place_name, ip, user_agent)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  stmt.run(placeCode, placeName ?? null, ip, userAgent);
+
+  console.log(`[CITY_SELECTED][DB] ${placeName ?? '-'} (${placeCode})`);
 
   return res.status(200).json({ ok: true });
 };
