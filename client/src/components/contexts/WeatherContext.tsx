@@ -1,3 +1,4 @@
+// src/components/contexts/WeatherContext.tsx
 import { createContext, useEffect, useState } from 'react';
 import weatherApi, { type LongTermForecastResponse, type Place } from '../../api/weatherApi';
 import type { ChildrenProps, TopCity, WeatherContextTypes } from '../../types';
@@ -18,6 +19,11 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
 
   useEffect(() => {
     setTopCities(loadTopCities());
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedPlaceCode');
+    if (saved) setSelectedPlaceCodeState(saved);
   }, []);
 
   useEffect(() => {
@@ -63,6 +69,7 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
 
   const setSelectedPlaceCode = async (placeCode: string) => {
     setSelectedPlaceCodeState(placeCode);
+    localStorage.setItem('selectedPlaceCode', placeCode);
 
     const place = places.find((p) => p.code === placeCode);
 
@@ -81,7 +88,7 @@ const WeatherProvider = ({ children }: ChildrenProps) => {
         }),
       });
     } catch {
-      // ignore logging errors
+      // ignor logging errors
     }
   };
 
